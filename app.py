@@ -96,7 +96,8 @@ def load_historical_csv(ticker_symbol):
         df['Date'] = pd.to_datetime(df['Date'])
         df.set_index('Date', inplace=True)
         # Strip timezone information to allow clean merging with YF
-        df.index = df.index.tz_localize(None)
+        if df.index.tz is not None:
+            df.index = df.index.tz_localize(None)
         return df
     except Exception:
         return pd.DataFrame()
@@ -1968,31 +1969,6 @@ if st.sidebar.button("Fetch Data & Value Options", type="primary"):
 # ==============================================================================
 # DATA FETCHING EXECUTION & HISTORICAL SPLICING
 # ==============================================================================
-
-def load_historical_csv(ticker_symbol):
-    """Loads and formats deep historical CSV data for specified assets."""
-    file_map = {
-        "GC=F": "data/gold.csv",
-        "SI=F": "data/silver.csv"
-    }
-    
-    if ticker_symbol not in file_map:
-        return pd.DataFrame()
-        
-    filepath = file_map[ticker_symbol]
-    if not os.path.exists(filepath):
-        return pd.DataFrame()
-        
-    try:
-        df = pd.read_csv(filepath)
-        df['Date'] = pd.to_datetime(df['Date'])
-        df.set_index('Date', inplace=True)
-        # Strip timezone information to allow clean merging with YF
-        df.index = df.index.tz_localize(None)
-        return df
-    except Exception:
-        return pd.DataFrame()
-
 
 if st.session_state.run_sim:
     etf_to_index_map = {
