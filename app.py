@@ -92,12 +92,21 @@ def load_historical_csv(ticker_symbol):
         
     try:
         df = pd.read_csv(filepath)
-        # Ensure Date column is standard datetime and set as index
-        df['Date'] = pd.to_datetime(df['Date'])
+        
+        # Ensure Date column is standard datetime (handling UK/European format) and set as index
+        df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
         df.set_index('Date', inplace=True)
-        # Strip timezone information to allow clean merging with YF
+        
+        # Strip timezone information safely to allow clean merging with YF
         if df.index.tz is not None:
             df.index = df.index.tz_localize(None)
+            
+        # Cast pricing columns to numeric types, removing potential string commas
+        cols = ["Open", "High", "Low", "Close"]
+        for col in cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce')
+                
         return df
     except Exception:
         return pd.DataFrame()
@@ -2895,8 +2904,3 @@ if st.session_state.run_sim:
         default_index=3,
         block_title="Profile 3: Second-Order Greeks (Volatility Convexity)",
     )
-
-There is a file you can reference named "silver.csv". Refer to this file by its name verbatim.
-
-
-There is a file you can reference named "gold.csv". Refer to this file by its name verbatim.
