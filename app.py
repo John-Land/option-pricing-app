@@ -13,6 +13,8 @@
 
 import datetime
 import time
+import os
+import requests
 import scipy.optimize as opt
 from scipy.optimize import minimize
 from scipy.stats import genpareto, norm
@@ -38,7 +40,7 @@ import yfinance as yf
 
 
 # ==============================================================================
-# 1. YFINANCE NATIVE CACHING HANDLER (V2)
+# 1. YFINANCE NATIVE CACHING HANDLER (V2) & HISTORICAL CSV SPLICER
 # ==============================================================================
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -73,6 +75,31 @@ def fetch_recent_data_v2(ticker_symbol):
             pass
         time.sleep(2)
     return pd.DataFrame()
+
+def load_historical_csv(ticker_symbol):
+    """Loads and formats deep historical CSV data for specified assets."""
+    file_map = {
+        "GC=F": "data/gold.csv",
+        "SI=F": "data/silver.csv"
+    }
+    
+    if ticker_symbol not in file_map:
+        return pd.DataFrame()
+        
+    filepath = file_map[ticker_symbol]
+    if not os.path.exists(filepath):
+        return pd.DataFrame()
+        
+    try:
+        df = pd.read_csv(filepath)
+        # Ensure Date column is standard datetime and set as index
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.set_index('Date', inplace=True)
+        # Strip timezone information to allow clean merging with YF
+        df.index = df.index.tz_localize(None)
+        return df
+    except Exception:
+        return pd.DataFrame()
 
 
 # ==============================================================================
@@ -1540,7 +1567,7 @@ help_text_m5 = r"""
 **The Intuition:** Addresses the volatility clustering flaw in standard EVT. Extreme market shocks are not independent; they cluster. Fitting distributions directly to clustered data overstates tail risk. This model uses the "Runs Method" to isolate only the single largest peak within a 5-day shock window, ensuring the GPD is calibrated strictly on independent black swans.
 
 **The Math (Distributions & Drift):**
-* **The Runs Method:** $X_{i, \max} = \max_{r \in C_i} (|r|)$ over a $k=5$ day window.
+* **The Runs Method:** $X_{i, \max} = \max_{r \in C_i} (\vert{}r\vert{})$ over a $k=5$ day window.
 * **1-Period Return:** $R_t \sim F_{EVT}$ (Empirical Center + Declustered GPD Tails)
 * **Terminal Price:** $S_T = S_0 \exp\left( \sum_{t=1}^{N} R_t + \mu_{adj} T \right)$
 
@@ -1564,7 +1591,7 @@ help_text_m7 = r"""
 **The Intuition:** Conventional GARCH uses the $L_2$ norm (variance), which requires the fourth moment to be finite. Because financial markets are fat-tailed ($\alpha < 4$), squaring extreme shocks causes the volatility filter to explode unreliably. This model filters historical simulations using the $L_1$ Mean Absolute Deviation (MAD), standardizing returns into highly stable, independent residuals before applying EVT.
 
 **The Math (Distributions & Drift):**
-* **$L_1$ Volatility Filter:** $MAD_t = \lambda MAD_{t-1} + (1 - \lambda)|r_{t-1}|$
+* **$L_1$ Volatility Filter:** $MAD_t = \lambda MAD_{t-1} + (1 - \lambda)\vert{}r_{t-1}\vert{}$
 * **Standardized Residuals:** $z_t = \frac{r_t}{MAD_t}$
 * **Recursive Path Generation:** $r_{t+i} = z_{t+i} \cdot MAD_{t+i}$
 
@@ -1938,27 +1965,76 @@ if "run_sim" not in st.session_state:
 if st.sidebar.button("Fetch Data & Value Options", type="primary"):
     st.session_state.run_sim = True
 
+# ==============================================================================
+# DATA FETCHING EXECUTION & HISTORICAL SPLICING
+# ==============================================================================
+
+def load_historical_csv(ticker_symbol):
+    """Loads and formats deep historical CSV data for specified assets."""
+    file_map = {
+        "GC=F": "data/gold.csv",
+        "SI=F": "data/silver.csv"
+    }
+    
+    if ticker_symbol not in file_map:
+        return pd.DataFrame()
+        
+    filepath = file_map[ticker_symbol]
+    if not os.path.exists(filepath):
+        return pd.DataFrame()
+        
+    try:
+        df = pd.read_csv(filepath)
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.set_index('Date', inplace=True)
+        # Strip timezone information to allow clean merging with YF
+        df.index = df.index.tz_localize(None)
+        return df
+    except Exception:
+        return pd.DataFrame()
+
+
 if st.session_state.run_sim:
     etf_to_index_map = {
-        "SPY": "^GSPC",  # S&P 500 Index (History back to 1927)
-        "QQQ": "^NDX",   # Nasdaq-100 Index (History back to 1985)
-        "IWM": "^RUT",   # Russell 2000 Index (History back to 1987)
-        "DIA": "^DJI",   # Dow Jones Industrial Average
-        "GLD": "GC=F",   # Gold Futures continuous contract
-        "SLV": "SI=F"    # Silver Futures continuous contract
+        "SPY": "^GSPC",  
+        "QQQ": "^NDX",   
+        "IWM": "^RUT",   
+        "DIA": "^DJI",   
+        "GLD": "GC=F",   
+        "SLV": "SI=F"    
     }
 
     fetch_ticker = etf_to_index_map.get(ticker, ticker)
 
     with st.spinner(f"Fetching max historical data for {ticker} via underlying source {fetch_ticker}..."):
         try:
-            # Using our updated cache-busting V2 functions
+            # 1. Fetch from Yahoo Finance
             data = fetch_historical_data_v2(fetch_ticker)
 
             if data.empty:
                 st.error(f"No historical data found for index/proxy {fetch_ticker} or rate limit triggered.")
                 st.stop()
+                
+            # Strip timezone from YF data for clean concatenation
+            data.index = data.index.tz_localize(None)
 
+            # 2. Historical CSV Splicing Logic
+            csv_data = load_historical_csv(fetch_ticker)
+            if not csv_data.empty:
+                min_yf_date = data.index.min()
+                # Filter CSV to strictly before the earliest YF date to prevent duplicates
+                csv_data_filtered = csv_data[csv_data.index < min_yf_date]
+                
+                if not csv_data_filtered.empty:
+                    # Align the columns we care about
+                    cols = ["Open", "High", "Low", "Close"]
+                    csv_data_filtered = csv_data_filtered[cols]
+                    data = data[cols]
+                    
+                    # Stack the historical data on top of the live YF data
+                    data = pd.concat([csv_data_filtered, data]).sort_index()
+
+            # 3. Fetch recent ETF price for scaling
             etf_data = fetch_recent_data_v2(ticker)
             
             if etf_data.empty:
@@ -1973,6 +2049,7 @@ if st.session_state.run_sim:
                 
             current_index_price = float(valid_index_prices.iloc[-1])
             
+            # 4. Scale proxy index/future to the ETF
             price_ratio = current_etf_price / current_index_price
 
             for col in ["Open", "High", "Low", "Close"]:
