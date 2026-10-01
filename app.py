@@ -91,10 +91,16 @@ def load_historical_csv(ticker_symbol):
         return pd.DataFrame()
         
     try:
-        df = pd.read_csv(filepath)
+        # engine='python' and sep=None auto-detects commas vs semicolons
+        # utf-8-sig handles hidden Excel Byte Order Marks (BOM)
+        df = pd.read_csv(filepath, sep=None, engine='python', encoding='utf-8-sig')
         
-        # Ensure Date column is standard datetime (handling UK/European format) and set as index
-        df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
+        # Strip invisible whitespace from column names
+        df.columns = df.columns.str.strip()
+        
+        # Robust datetime parsing handling mixed and single-digit formats
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df = df.dropna(subset=['Date'])
         df.set_index('Date', inplace=True)
         
         # Strip timezone information safely to allow clean merging with YF
@@ -106,9 +112,13 @@ def load_historical_csv(ticker_symbol):
         for col in cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce')
+        
+        # Drop rows missing critical close data
+        df = df.dropna(subset=["Close"])
                 
         return df
-    except Exception:
+    except Exception as e:
+        print(f"CSV Load Error for {ticker_symbol}: {e}")
         return pd.DataFrame()
 
 
