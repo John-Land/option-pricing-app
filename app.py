@@ -2895,3 +2895,8 @@ if st.session_state.run_sim:
         default_index=3,
         block_title="Profile 3: Second-Order Greeks (Volatility Convexity)",
     )
+
+There is a file you can reference named "silver.csv". Refer to this file by its name verbatim.
+
+
+There is a file you can reference named "gold.csv". Refer to this file by its name verbatim.
