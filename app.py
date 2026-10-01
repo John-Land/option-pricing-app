@@ -80,7 +80,8 @@ def load_historical_csv(ticker_symbol):
     """Loads and formats deep historical CSV data for specified assets."""
     file_map = {
         "GC=F": "data/gold.csv",
-        "SI=F": "data/silver.csv"
+        "SI=F": "data/silver.csv",
+        "JPY=X": "usd_jpy.csv"
     }
     
     if ticker_symbol not in file_map:
