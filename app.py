@@ -1997,7 +1997,8 @@ if st.session_state.run_sim:
         "IWM": "^RUT",   
         "DIA": "^DJI",   
         "GLD": "GC=F",   
-        "SLV": "SI=F"    
+        "SLV": "SI=F",
+        "USD/JPY": "JPY=X"
     }
 
     fetch_ticker = etf_to_index_map.get(ticker, ticker)
