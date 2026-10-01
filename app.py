@@ -2013,18 +2013,35 @@ if st.session_state.run_sim:
             # Strip timezone from YF data for clean concatenation
             data.index = data.index.tz_localize(None)
 
-            # 2. Historical CSV Splicing Logic
+            # 2. Historical CSV Splicing Logic (Executed BEFORE scaling & calculations)
             csv_data = load_historical_csv(fetch_ticker)
             if not csv_data.empty:
                 min_yf_date = data.index.min()
                 # Filter CSV to strictly before the earliest YF date to prevent duplicates
-                csv_data_filtered = csv_data[csv_data.index < min_yf_date]
+                csv_data_filtered = csv_data[csv_data.index < min_yf_date].copy()
                 
                 if not csv_data_filtered.empty:
-                    # Align the columns we care about
-                    cols = ["Open", "High", "Low", "Close"]
-                    csv_data_filtered = csv_data_filtered[cols]
-                    data = data[cols]
+                    # Enforce strict column alignment including Volume
+                    target_cols = ["Open", "High", "Low", "Close", "Volume"]
+                    
+                    # Ensure all target columns exist in CSV data, fill missing with 0 for Volume
+                    for col in target_cols:
+                        if col not in csv_data_filtered.columns:
+                            csv_data_filtered[col] = 0.0
+                            
+                    # Reorder both DataFrames to ensure clean concatenation
+                    csv_data_filtered = csv_data_filtered[target_cols]
+                    
+                    # Filter YF data to match target columns
+                    available_yf_cols = [col for col in target_cols if col in data.columns]
+                    data = data[available_yf_cols]
+
+                    # Add missing columns to YF data if any
+                    for col in target_cols:
+                        if col not in data.columns:
+                            data[col] = 0.0
+                            
+                    data = data[target_cols]
                     
                     # Stack the historical data on top of the live YF data
                     data = pd.concat([csv_data_filtered, data]).sort_index()
