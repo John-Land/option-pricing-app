@@ -2513,14 +2513,12 @@ if st.session_state.run_sim:
         m4.metric("Avg Sample Vol", f"{np.mean(sampled_vols_hybrid)*100:.2f}%")
         m5.metric("Max Sample Vol", f"{np.max(sampled_vols_hybrid)*100:.2f}%")
         
-        m6.metric(
-            "Vol Tail Shape (\u03BE)",
-            f"{hybrid_shape_mle:.4f}",
-            help=help_text_vol_tail
-        )
         m6.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['Hybrid'][5]:.4f} - {results['Hybrid'][6]:.4f})</div>", 
-            unsafe_allow_html=True
+            f"<div><span style='font-size: 14px; color: #555;'>Vol Tail Shape (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{hybrid_shape_mle:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['Hybrid'][5]:.4f} - {results['Hybrid'][6]:.4f})</span></div>", 
+            unsafe_allow_html=True,
+            help=help_text_vol_tail
         )
 
         st.caption(
@@ -2566,24 +2564,19 @@ if st.session_state.run_sim:
             help="Probability the structure yields a strictly positive intrinsic value (Payoff > $0) at expiration.",
         )
 
-        m3.metric(
-            "Left Tail Shape (\u03BE)",
-            f"{results['EVT'][3]:.4f}",
+        m3.markdown(
+            f"<div><span style='font-size: 14px; color: #555;'>Left Tail Shape (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['EVT'][3]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['EVT'][5]:.4f} - {results['EVT'][6]:.4f})</span></div>", 
+            unsafe_allow_html=True,
             help=help_text_left_tail
         )
-        m3.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['EVT'][5]:.4f} - {results['EVT'][6]:.4f})</div>", 
-            unsafe_allow_html=True
-        )
-        
-        m4.metric(
-            "Right Tail Shape (\u03BE)",
-            f"{results['EVT'][4]:.4f}",
-            help=help_text_right_tail
-        )
         m4.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['EVT'][7]:.4f} - {results['EVT'][8]:.4f})</div>", 
-            unsafe_allow_html=True
+            f"<div><span style='font-size: 14px; color: #555;'>Right Tail Shape (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['EVT'][4]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['EVT'][7]:.4f} - {results['EVT'][8]:.4f})</span></div>", 
+            unsafe_allow_html=True,
+            help=help_text_right_tail
         )
 
         st.caption(
@@ -2626,24 +2619,19 @@ if st.session_state.run_sim:
             help="Probability the structure yields a strictly positive intrinsic value (Payoff > $0) at expiration.",
         )
 
-        m3.metric(
-            "Declustered Left Tail (\u03BE)",
-            f"{results['Declustered_EVT'][3]:.4f}",
+        m3.markdown(
+            f"<div><span style='font-size: 14px; color: #555;'>Declustered Left Tail (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['Declustered_EVT'][3]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['Declustered_EVT'][5]:.4f} - {results['Declustered_EVT'][6]:.4f})</span></div>", 
+            unsafe_allow_html=True,
             help=help_text_left_tail
         )
-        m3.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['Declustered_EVT'][5]:.4f} - {results['Declustered_EVT'][6]:.4f})</div>", 
-            unsafe_allow_html=True
-        )
-        
-        m4.metric(
-            "Declustered Right Tail (\u03BE)",
-            f"{results['Declustered_EVT'][4]:.4f}",
-            help=help_text_right_tail
-        )
         m4.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['Declustered_EVT'][7]:.4f} - {results['Declustered_EVT'][8]:.4f})</div>", 
-            unsafe_allow_html=True
+            f"<div><span style='font-size: 14px; color: #555;'>Declustered Right Tail (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['Declustered_EVT'][4]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['Declustered_EVT'][7]:.4f} - {results['Declustered_EVT'][8]:.4f})</span></div>", 
+            unsafe_allow_html=True,
+            help=help_text_right_tail
         )
 
         st.caption(
@@ -2707,24 +2695,20 @@ if st.session_state.run_sim:
             help="Must be < 1.0 for mean reversion to exist.",
         )
 
-        m7_col.metric(
-            "Residual Left Tail (\u03BE)",
-            f"{results['GARCH'][6]:.4f}",
+        m7_col.markdown(
+            f"<div><span style='font-size: 14px; color: #555;'>Residual Left Tail (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['GARCH'][6]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['GARCH'][8]:.4f} - {results['GARCH'][9]:.4f})</span></div>", 
+            unsafe_allow_html=True,
             help=help_text_left_tail
         )
-        m7_col.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['GARCH'][8]:.4f} - {results['GARCH'][9]:.4f})</div>", 
-            unsafe_allow_html=True
-        )
 
-        m8_col.metric(
-            "Residual Right Tail (\u03BE)",
-            f"{results['GARCH'][7]:.4f}",
-            help=help_text_right_tail
-        )
         m8_col.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['GARCH'][10]:.4f} - {results['GARCH'][11]:.4f})</div>", 
-            unsafe_allow_html=True
+            f"<div><span style='font-size: 14px; color: #555;'>Residual Right Tail (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['GARCH'][7]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['GARCH'][10]:.4f} - {results['GARCH'][11]:.4f})</span></div>", 
+            unsafe_allow_html=True,
+            help=help_text_right_tail
         )
 
         st.caption(
@@ -2767,24 +2751,19 @@ if st.session_state.run_sim:
             help="Probability the structure yields a strictly positive intrinsic value (Payoff > $0) at expiration.",
         )
 
-        m3.metric(
-            "Residual Left Tail (\u03BE)",
-            f"{results['MAD_FHS'][3]:.4f}",
+        m3.markdown(
+            f"<div><span style='font-size: 14px; color: #555;'>Residual Left Tail (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['MAD_FHS'][3]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['MAD_FHS'][5]:.4f} - {results['MAD_FHS'][6]:.4f})</span></div>", 
+            unsafe_allow_html=True,
             help=help_text_left_tail
         )
-        m3.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['MAD_FHS'][5]:.4f} - {results['MAD_FHS'][6]:.4f})</div>", 
-            unsafe_allow_html=True
-        )
-        
-        m4.metric(
-            "Residual Right Tail (\u03BE)",
-            f"{results['MAD_FHS'][4]:.4f}",
-            help=help_text_right_tail
-        )
         m4.markdown(
-            f"<div style='margin-top: -20px; font-size: 0.7rem; color: #888;'>({results['MAD_FHS'][7]:.4f} - {results['MAD_FHS'][8]:.4f})</div>", 
-            unsafe_allow_html=True
+            f"<div><span style='font-size: 14px; color: #555;'>Residual Right Tail (\u03BE)</span><br>"
+            f"<span style='font-size: 1.4rem; font-weight: 400;'>{results['MAD_FHS'][4]:.4f}</span><br>"
+            f"<span style='font-size: 0.7rem; color: #888;'>({results['MAD_FHS'][7]:.4f} - {results['MAD_FHS'][8]:.4f})</span></div>", 
+            unsafe_allow_html=True,
+            help=help_text_right_tail
         )
 
         st.caption(
@@ -2952,8 +2931,3 @@ if st.session_state.run_sim:
         default_index=3,
         block_title="Profile 3: Second-Order Greeks (Volatility Convexity)",
     )
-I will now update `app.py` to fix the CSV splicing logic exactly as mapped out. 
-
-I will move the call to `load_historical_csv()` and the concatenation logic directly underneath the Yahoo Finance timezone stripping operation. This guarantees that all scaling, index ratio calculations, and log returns natively utilize the historically enriched dataset from the 1970s.
-
-```python:Option Pricing App:app.py
